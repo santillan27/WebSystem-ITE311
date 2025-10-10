@@ -3,7 +3,6 @@
 namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
-use CodeIgniter\Database\RawSql;
 
 class CreateEnrollmentsTable extends Migration
 {
@@ -26,26 +25,33 @@ class CreateEnrollmentsTable extends Migration
                 'constraint' => 11,
                 'unsigned'   => true,
             ],
+            
             'enrolled_at' => [
-                'type'    => 'DATETIME',
-                'null'    => false,
-                'default' => new RawSql('CURRENT_TIMESTAMP'),
+                'type' => 'DATETIME',
+                'null' => true,
+                'default' => null,
+            ],
+            'enrollment_date' => [
+                'type' => 'DATETIME',
+                'null' => true,
+                'default' => null,
+                'comment' => 'Alternate name for enrolled_at',
             ],
         ]);
 
+        // Primary key
         $this->forge->addKey('id', true);
-        $this->forge->addKey('user_id');
-        $this->forge->addKey('course_id');
+
+        // Foreign keys
         $this->forge->addForeignKey('user_id', 'users', 'id', 'CASCADE', 'CASCADE');
         $this->forge->addForeignKey('course_id', 'courses', 'id', 'CASCADE', 'CASCADE');
-        $this->forge->createTable('enrollments');
 
-        // Optional: unique constraint so a user can’t enroll in the same course twice
-        $this->db->query('CREATE UNIQUE INDEX ux_enrollments_user_course ON enrollments (user_id, course_id)');
+        // Create table
+        $this->forge->createTable('enrollments', true);
     }
 
     public function down()
     {
-        $this->forge->dropTable('enrollments');
+        $this->forge->dropTable('enrollments', true);
     }
 }

@@ -1,0 +1,65 @@
+CRITICAL - 2025-09-03 12:12:24 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "layouts/main.php"
+[Method: GET, Route: register]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('layouts/main.php')
+ 2 SYSTEMPATH\View\View.php(242): CodeIgniter\View\View->render('layouts/main', [], true)
+ 3 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('auth/register', [], true)
+ 4 APPPATH\Controllers\Auth.php(59): view('auth/register')
+ 5 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Auth->register()
+ 6 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+ 7 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH\index.php(64): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-03 12:12:31 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "layouts/main.php"
+[Method: GET, Route: login]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('layouts/main.php')
+ 2 SYSTEMPATH\View\View.php(242): CodeIgniter\View\View->render('layouts/main', [], true)
+ 3 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('auth/login', [], true)
+ 4 APPPATH\Controllers\Auth.php(107): view('auth/login')
+ 5 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Auth->login()
+ 6 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+ 7 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH\index.php(64): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-03 12:12:39 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "layouts/main.php"
+[Method: GET, Route: register]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('layouts/main.php')
+ 2 SYSTEMPATH\View\View.php(242): CodeIgniter\View\View->render('layouts/main', [], true)
+ 3 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('auth/register', [], true)
+ 4 APPPATH\Controllers\Auth.php(59): view('auth/register')
+ 5 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Auth->register()
+ 6 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+ 7 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH\index.php(64): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-03 12:15:28 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "layouts/main.php"
+[Method: GET, Route: register]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('layouts/main.php')
+ 2 SYSTEMPATH\View\View.php(242): CodeIgniter\View\View->render('layouts/main', [], true)
+ 3 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('auth/register', [], true)
+ 4 APPPATH\Controllers\Auth.php(59): view('auth/register')
+ 5 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Auth->register()
+ 6 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+ 7 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH\index.php(64): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-03 12:15:40 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "layouts/main.php"
+[Method: GET, Route: register]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('layouts/main.php')
+ 2 SYSTEMPATH\View\View.php(242): CodeIgniter\View\View->render('layouts/main', [], true)
+ 3 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('auth/register', [], true)
+ 4 APPPATH\Controllers\Auth.php(59): view('auth/register')
+ 5 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Auth->register()
+ 6 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Auth))
+ 7 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH\index.php(64): CodeIgniter\Boot::bootWeb(Object(Config\Paths))

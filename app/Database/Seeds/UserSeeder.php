@@ -3,34 +3,39 @@
 namespace App\Database\Seeds;
 
 use CodeIgniter\Database\Seeder;
+use App\Models\UserModel;
 
 class UserSeeder extends Seeder
 {
     public function run()
     {
-        $data = [
+        $model = new UserModel();
+
+        $users = [
             [
                 'name'     => 'Admin User',
                 'email'    => 'admin@example.com',
-                'password' => password_hash('admin123', PASSWORD_DEFAULT),
-                'role'     => 'admin',
+                'password' => password_hash('admin123', PASSWORD_DEFAULT), // ✅ hashed password
+                'role'     => 'admin'
             ],
             [
-                'name'     => 'Instructor User',
-                'email'    => 'instructor@example.com',
-                'password' => password_hash('instructor123', PASSWORD_DEFAULT),
-                'role'     => 'instructor',
+                'name'     => 'Teacher User',
+                'email'    => 'teacher@example.com',
+                'password' => password_hash('teacher123', PASSWORD_DEFAULT), // ✅ hashed password
+                'role'     => 'teacher'
             ],
             [
                 'name'     => 'Student User',
                 'email'    => 'student@example.com',
-                'password' => password_hash('student123', PASSWORD_DEFAULT),
-                'role'     => 'student',
+                'password' => password_hash('student123', PASSWORD_DEFAULT), // ✅ hashed password
+                'role'     => 'student'
             ],
         ];
 
-        // Insert multiple records into "users" table
-        $this->db->table('users')->insertBatch($data);
+        foreach ($users as $user) {
+            $model->skipValidation(true)->save($user);
+        }
+
+        echo "Users seeded successfully!";
     }
 }
-    

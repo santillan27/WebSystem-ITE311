@@ -18,6 +18,11 @@ class CreateUsersTable extends Migration
                 'constraint' => ['admin', 'teacher', 'student'], // ✅ updated roles
                 'default'    => 'student' // ✅ default role (can be 'student' or another)
             ],
+            'status'    => [
+                'type'       => 'ENUM',
+                'constraint' => ['active', 'inactive'],
+                'default'    => 'active'
+            ],
             'created_at'=> ['type'=>'DATETIME', 'null'=>true],
             'updated_at'=> ['type'=>'DATETIME', 'null'=>true],
         ]);

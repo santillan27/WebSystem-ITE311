@@ -27,6 +27,11 @@ class Filters extends BaseFilters
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
+        
+        'csrf'      => \CodeIgniter\Filters\CSRF::class,
+        'toolbar'   => \CodeIgniter\Filters\DebugToolbar::class,
+        'honeypot'  => \CodeIgniter\Filters\Honeypot::class,
+        'roleauth'  => \App\Filters\RoleAuth::class,
 
         // AuthGuard temporarily disabled
     ];

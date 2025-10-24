@@ -5,22 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= esc($title ?? 'Dashboard') ?> - ITE311-SANTILLAN</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
+        
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            font-family: Arial, sans-serif;
             padding: 20px;
             color: #333;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1200px; margin: 0 auto; }
         .header {
             background: white;
             padding: 25px;
@@ -29,155 +22,262 @@
             margin-bottom: 30px;
             text-align: center;
         }
-        .header h1 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        .user-info {
-            color: #555;
-            margin-bottom: 20px;
-        }
+
         .logout-btn {
-            background: #dc3545;
-            color: white;
-            padding: 10px 20px;
+            background: #dc3545; color: white;
+            padding: 10px 20px; border-radius: 5px;
             text-decoration: none;
-            border-radius: 5px;
-            display: inline-block;
-            transition: background 0.3s;
         }
-        .logout-btn:hover {
-            background: #c82333;
-        }
+
+
+        .logout-btn:hover { background: #b52a38; }
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
+            margin-bottom: 40px;
         }
         .dashboard-card {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transition: transform 0.3s;
+            background: white; padding: 30px; border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center; transition: transform 0.3s;
         }
-        .dashboard-card:hover {
-            transform: translateY(-5px);
+        .dashboard-card:hover { transform: translateY(-5px); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background: #667eea; color: white; }
+        .enroll-btn {
+            background: #28a745; color: white; border: none;
+            padding: 8px 15px; border-radius: 5px; cursor: pointer;
         }
-        .card-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-        }
-        .card-title {
-            font-size: 1.5rem;
-            color: #333;
-            margin-bottom: 10px;
-        }
-        .card-text {
-            color: #666;
-            margin-bottom: 20px;
-        }
-        .card-btn {
-            background: #667eea;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            display: inline-block;
-            transition: background 0.3s;
-        }
-        .card-btn:hover {
-            background: #5a6fd8;
-        }
-        .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            text-align: center;
-        }
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .enroll-btn:hover { background: #218838; }
+        .section {
+            background: white; padding: 25px; border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 30px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Welcome, <?= esc($user_name ?? $user['name'] ?? 'User') ?>! 🎉</h1>
-            <div class="user-info">
-                <p><strong>Role:</strong> <?= esc(ucfirst($user_role ?? $user['role'] ?? 'User')) ?></p>
-                <p><strong>Email:</strong> <?= esc($user_email ?? $user['email'] ?? 'No email') ?></p>
-            </div>
-            <a href="<?= base_url('auth/logout') ?>" class="logout-btn">Logout</a>
+<div class="container">
+    <div class="header">
+        <h1>Welcome, <?= esc($user_name ?? 'User') ?> 🎉</h1>
+        <p><strong>Role:</strong> <?= esc(ucfirst($user_role)) ?></p>
+        <a href="<?= base_url('auth/logout') ?>" class="logout-btn">Logout</a>
+    </div>
+
+    <!-- 🔹 Common Dashboard Cards -->
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <div class="card-icon">👤</div>
+            <h3>Profile</h3>
+            <p>View or edit your account details.</p>
         </div>
-
-        <?php if (session()->getFlashdata('success')): ?>
-            <div class="alert alert-success">
-                <?= esc(session()->getFlashdata('success')) ?>
-            </div>
-        <?php endif; ?>
-
-        <div class="dashboard-grid">
-            <!-- Profile Card -->
-            <div class="dashboard-card">
-                <div class="card-icon">👤</div>
-                <h3 class="card-title">Profile</h3>
-                <p class="card-text">View or edit your account details.</p>
-                <a href="#" class="card-btn">Manage Profile</a>
-            </div>
-
-            <!-- Stats Card -->
-            <div class="dashboard-card">
-                <div class="card-icon">📊</div>
-                <h3 class="card-title">Statistics</h3>
-                <p class="card-text">
-                    Logged in as <strong><?= esc(ucfirst($user_role ?? 'User')) ?></strong>.<br>
-                    User ID: <?= esc($user['id'] ?? 'N/A') ?>
-                </p>
-                <a href="#" class="card-btn">View Stats</a>
-            </div>
-
-            <!-- Settings Card -->
-            <div class="dashboard-card">
-                <div class="card-icon">⚙️</div>
-                <h3 class="card-title">Settings</h3>
-                <p class="card-text">Customize your dashboard and preferences.</p>
-                <a href="#" class="card-btn">Open Settings</a>
-            </div>
-
-            <!-- Admin Panel -->
-            <?php if (isset($user_role) && $user_role === 'admin'): ?>
-                <div class="dashboard-card">
-                    <div class="card-icon">🧑‍💼</div>
-                    <h3 class="card-title">Admin Panel</h3>
-                    <p class="card-text">Access administrative tools and manage users.</p>
-                    <a href="<?= base_url('admin/manage-users') ?>" class="card-btn">Go to Admin Panel</a>
-                </div>
-            <?php endif; ?>
-
-            <!-- Teacher Panel -->
-            <?php if (isset($user_role) && $user_role === 'teacher'): ?>
-                <div class="dashboard-card">
-                    <div class="card-icon">📚</div>
-                    <h3 class="card-title">My Courses</h3>
-                    <p class="card-text">Manage your course materials and students.</p>
-                    <a href="<?= base_url('teacher/courses') ?>" class="card-btn">Go to Courses</a>
-                </div>
-            <?php endif; ?>
-
-            <!-- Student Panel -->
-            <?php if (isset($user_role) && $user_role === 'student'): ?>
-                <div class="dashboard-card">
-                    <div class="card-icon">🎓</div>
-                    <h3 class="card-title">My Enrollments</h3>
-                    <p class="card-text">View your enrolled courses and progress.</p>
-                    <a href="<?= base_url('student/enrollments') ?>" class="card-btn">View Enrollments</a>
-                </div>
-            <?php endif; ?>
+        <div class="dashboard-card">
+            <div class="card-icon">📊</div>
+            <h3>Statistics</h3>
+            <p>You are logged in as <strong><?= esc($user_role) ?></strong>.</p>
         </div>
     </div>
+
+    <!-- 🔹 STUDENT DASHBOARD -->
+    <?php if ($user_role === 'student'): ?>
+        <!-- 📢 ANNOUNCEMENTS FOR STUDENTS (READ-ONLY) -->
+        <div class="section">
+            <h2>📢 Announcements</h2>
+            <?php if (!empty($announcements)): ?>
+                <?php foreach ($announcements as $announcement): ?>
+                    <div style="background:#f8f9fa; padding:15px; border-radius:8px; margin-bottom:15px; border-left:4px solid #667eea;">
+                        <h3 style="margin:0 0 10px 0; color:#667eea;"><?= esc($announcement['title']) ?></h3>
+                        <p style="margin:0 0 10px 0; color:#666;"><?= esc($announcement['content']) ?></p>
+                        <small style="color:#999;">
+                            Posted by: <strong><?= esc($announcement['posted_by']) ?></strong> | 
+                            <?= date('M d, Y h:i A', strtotime($announcement['created_at'])) ?>
+                        </small>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p>No announcements available.</p>
+            <?php endif; ?>
+        </div>
+        
+        <div class="section">
+            <h2>📘 Available Courses</h2>
+            <?php if (!empty($courses)): ?>
+                <table>
+                    <thead><tr><th>Title</th><th>Description</th><th>Action</th></tr></thead>
+                    <tbody>
+                    <?php foreach ($courses as $course): ?>
+                        <?php
+                            $enrolled = false;
+                            foreach ($enrolledCourses as $en) {
+                                if ($en['id'] == $course['id']) { $enrolled = true; break; }
+                            }
+                        ?>
+                        <tr>
+                            <td><?= esc($course['title']) ?></td>
+                            <td><?= esc($course['description']) ?></td>
+                            <td>
+                                <?php if ($enrolled): ?>
+                                    ✅ Enrolled
+                                <?php else: ?>
+                                    <button class="enroll-btn" data-id="<?= $course['id'] ?>">Enroll</button>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <p>No available courses.</p>
+            <?php endif; ?>
+        </div>
+
+        <div class="section">
+            <h2>🎓 My Enrolled Courses</h2>
+            <?php if (!empty($enrolledCourses)): ?>
+                <table>
+                    <thead><tr><th>Title</th><th>Description</th><th>Enrollment Date</th></tr></thead>
+                    <tbody>
+                    <?php foreach ($enrolledCourses as $en): ?>
+                        <tr>
+                            <td><?= esc($en['title']) ?></td>
+                            <td><?= esc($en['description']) ?></td>
+                            <td><?= esc($en['enrollment_date']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <p>You are not enrolled in any courses yet.</p>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- 🔹 TEACHER DASHBOARD -->
+    <?php if ($user_role === 'teacher'): ?>
+        <!-- 📢 ANNOUNCEMENTS FOR TEACHERS (READ-ONLY) -->
+        <div class="section">
+            <h2>📢 Announcements</h2>
+            <?php if (!empty($announcements)): ?>
+                <?php foreach ($announcements as $announcement): ?>
+                    <div style="background:#f8f9fa; padding:15px; border-radius:8px; margin-bottom:15px; border-left:4px solid #667eea;">
+                        <h3 style="margin:0 0 10px 0; color:#667eea;"><?= esc($announcement['title']) ?></h3>
+                        <p style="margin:0 0 10px 0; color:#666;"><?= esc($announcement['content']) ?></p>
+                        <small style="color:#999;">
+                            Posted by: <strong><?= esc($announcement['posted_by']) ?></strong> | 
+                            <?= date('M d, Y h:i A', strtotime($announcement['created_at'])) ?>
+                        </small>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p>No announcements available.</p>
+            <?php endif; ?>
+        </div>
+        
+        <div class="section">
+            <h2>👨‍🏫 My Courses & Enrolled Students</h2>
+            <?php if (!empty($teacherCourses)): ?>
+                <?php foreach ($teacherCourses as $course): ?>
+                    <h3><?= esc($course['title']) ?></h3>
+                    <p><?= esc($course['description']) ?></p>
+
+                    <?php if (!empty($course['students'])): ?>
+                        <table>
+                            <thead><tr><th>Student Name</th><th>Enrollment Date</th></tr></thead>
+                            <tbody>
+                            <?php foreach ($course['students'] as $student): ?>
+                                <tr>
+                                    <td><?= esc($student['name']) ?></td>
+                                    <td><?= esc($student['enrollment_date']) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php else: ?>
+                        <p>No students enrolled yet.</p>
+                    <?php endif; ?>
+                    <hr>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p>You have no assigned courses.</p>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- 🔹 ADMIN DASHBOARD -->
+    <?php if ($user_role === 'admin'): ?>
+        <!-- 📢 ANNOUNCEMENTS SECTION FOR ADMIN -->
+        <div class="section">
+            <h2>📢 Announcements</h2>
+            <a href="<?= base_url('announcement/create') ?>" class="create-btn" style="display:inline-block; margin-bottom:15px; text-decoration:none; background:#28a745; color:white; padding:8px 15px; border-radius:5px;">➕ Create New Announcement</a>
+            
+            <?php if (!empty($announcements)): ?>
+                <?php foreach ($announcements as $announcement): ?>
+                    <div style="background:#f8f9fa; padding:15px; border-radius:8px; margin-bottom:15px; border-left:4px solid #667eea;">
+                        <h3 style="margin:0 0 10px 0; color:#667eea;"><?= esc($announcement['title']) ?></h3>
+                        <p style="margin:0 0 10px 0; color:#666;"><?= esc($announcement['content']) ?></p>
+                        <small style="color:#999;">
+                            Posted by: <strong><?= esc($announcement['posted_by']) ?></strong> | 
+                            <?= date('M d, Y h:i A', strtotime($announcement['created_at'])) ?>
+                        </small>
+                        <div style="margin-top:10px;">
+                            <a href="<?= base_url('announcement/edit/' . $announcement['id']) ?>" style="color:#007bff; text-decoration:none; margin-right:15px;">✏️ Edit</a>
+                            <a href="<?= base_url('announcement/delete/' . $announcement['id']) ?>" 
+                               onclick="return confirm('Are you sure you want to delete this announcement?')" 
+                               style="color:#dc3545; text-decoration:none;">🗑️ Delete</a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p>No announcements yet. Create your first announcement!</p>
+            <?php endif; ?>
+        </div>
+        
+        <div class="section">
+            <h2>🧑‍💼 Admin Dashboard - All Enrollments</h2>
+            <?php if (!empty($allEnrollments)): ?>
+                <table>
+                    <thead><tr><th>Course</th><th>Instructor</th><th>Student</th><th>Enrollment Date</th></tr></thead>
+                    <tbody>
+                    <?php foreach ($allEnrollments as $row): ?>
+                        <tr>
+                            <td><?= esc($row['course_title']) ?></td>
+                            <td><?= esc($row['instructor_name']) ?></td>
+                            <td><?= esc($row['student_name']) ?></td>
+                            <td><?= esc($row['enrollment_date']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <p>No enrollments found.</p>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+</div>
+
+<!-- ✅ AJAX Enroll -->
+<script>
+document.querySelectorAll('.enroll-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const id = btn.dataset.id;
+        if (!id) return; // Skip if no course ID
+        
+        e.preventDefault(); // Prevent default action
+        
+        fetch('<?= base_url('course/enroll') ?>', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'course_id=' + id
+        })
+        .then(r => r.json())
+        .then(data => {
+            alert(data.message);
+            if (data.status === 'success') location.reload();
+        })
+        .catch(() => alert('Error occurred.'));
+    });
+});
+</script>
 </body>
 </html>

@@ -10,48 +10,32 @@ class CreateEnrollmentsTable extends Migration
     {
         $this->forge->addField([
             'id' => [
-                'type'           => 'INT',
-                'constraint'     => 11,
-                'unsigned'       => true,
+                'type' => 'INT',
+                'unsigned' => true,
                 'auto_increment' => true,
             ],
             'user_id' => [
-                'type'       => 'INT',
-                'constraint' => 11,
-                'unsigned'   => true,
+                'type' => 'INT',
+                'unsigned' => true,
             ],
             'course_id' => [
-                'type'       => 'INT',
-                'constraint' => 11,
-                'unsigned'   => true,
-            ],
-            
-            'enrolled_at' => [
-                'type' => 'DATETIME',
-                'null' => true,
-                'default' => null,
+                'type' => 'INT',
+                'unsigned' => true,
             ],
             'enrollment_date' => [
                 'type' => 'DATETIME',
-                'null' => true,
-                'default' => null,
-                'comment' => 'Alternate name for enrolled_at',
+                'null' => false,
             ],
         ]);
 
-        // Primary key
         $this->forge->addKey('id', true);
-
-        // Foreign keys
         $this->forge->addForeignKey('user_id', 'users', 'id', 'CASCADE', 'CASCADE');
         $this->forge->addForeignKey('course_id', 'courses', 'id', 'CASCADE', 'CASCADE');
-
-        // Create table
-        $this->forge->createTable('enrollments', true);
+        $this->forge->createTable('enrollments');
     }
 
     public function down()
     {
-        $this->forge->dropTable('enrollments', true);
+        $this->forge->dropTable('enrollments');
     }
 }

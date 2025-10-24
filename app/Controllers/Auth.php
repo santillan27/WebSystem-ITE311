@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\UserModel;
+use CodeIgniter\Controller;
 
 class Auth extends BaseController
 {
@@ -12,7 +13,7 @@ class Auth extends BaseController
     public function login()
     {
         if (session()->get('logged_in')) {
-            return redirect()->to('/dashboard');
+            return redirect()->to('/course/dashboard');
         }
 
         if ($this->request->getMethod() === 'GET') {
@@ -30,7 +31,7 @@ class Auth extends BaseController
             $userModel = new UserModel();
             $email     = $this->request->getPost('email');
             $password  = $this->request->getPost('password');
-            $user      = $userModel->findUserByEmail($email);
+            $user      = $userModel->where('email', $email)->first();
 
             if (!$user) {
                 return redirect()->back()->withInput()->with('error', 'Email not found.');
@@ -44,18 +45,28 @@ class Auth extends BaseController
                 return redirect()->back()->with('error', 'Your account is not active. Please contact admin.');
             }
 
+            // ✅ Store session
             session()->set([
-                'user_id'   => $user['id'],
-                'user_name' => $user['name'],
-                'user_role' => strtolower($user['role']),
-                'logged_in' => true,
+                'user_id'    => $user['id'],
+                'user_name'  => $user['name'],
+                'role'       => strtolower($user['role']),
+                'isLoggedIn' => true,
             ]);
 
-            return redirect()->to('/dashboard')->with('success', 'You have successfully logged in.');
+            // ✅ Redirect based on role
+            $role = strtolower($user['role']);
+            if ($role === 'admin') {
+                return redirect()->to('/admin/dashboard')->with('success', 'You have successfully logged in.');
+            } elseif ($role === 'teacher') {
+                return redirect()->to('/teacher/dashboard')->with('success', 'You have successfully logged in.');
+            } else {
+                // Student
+                return redirect()->to('/announcements')->with('success', 'You have successfully logged in.');
+            }
         }
     }
 
-    // ✅ REGISTER
+    // ✅ FIXED REGISTER FUNCTION
     public function register()
     {
         if ($this->request->getMethod() === 'GET') {
@@ -74,18 +85,24 @@ class Auth extends BaseController
             }
 
             $userModel = new UserModel();
-            $result = $userModel->createAccount([
+
+            // ✅ Hash password securely
+            $hashedPassword = password_hash($this->request->getPost('password'), PASSWORD_DEFAULT);
+
+            $data = [
                 'name'     => $this->request->getPost('name'),
                 'email'    => $this->request->getPost('email'),
-                'password' => $this->request->getPost('password'),
+                'password' => $hashedPassword,
                 'role'     => strtolower($this->request->getPost('role')),
-            ]);
+                'status'   => 'active', // optional, if your DB has this column
+            ];
 
-            if (is_array($result)) {
-                return redirect()->back()->withInput()->with('errors', $result);
+            // ✅ Insert user directly
+            if ($userModel->insert($data)) {
+                return redirect()->to('/auth/login')->with('success', 'Account created successfully! You can now login.');
+            } else {
+                return redirect()->back()->withInput()->with('error', 'Registration failed. Please try again.');
             }
-
-            return redirect()->to('/auth/login')->with('success', 'Account created successfully. You can now login.');
         }
     }
 
@@ -96,30 +113,49 @@ class Auth extends BaseController
         return redirect()->to('/auth/login')->with('success', 'You have been logged out.');
     }
 
-   public function dashboard()
-{
-    $session = session();
+    // ✅ DASHBOARD
+    public function dashboard()
+    {
+        $session = session();
 
-    if (!$session->get('logged_in')) {
-        return redirect()->to('/auth/login')->with('error', 'Please login first.');
+        if (!$session->get('isLoggedIn')) {
+            return redirect()->to('/auth/login')->with('error', 'Please login first.');
+        }
+
+        $db = \Config\Database::connect();
+        $userId   = $session->get('user_id');
+        $userRole = strtolower($session->get('role'));
+        $userName = $session->get('user_name');
+
+        // ✅ Fetch all courses
+        $courses = $db->table('courses')
+                      ->select('id, title, description')
+                      ->get()
+                      ->getResultArray();
+
+        // ✅ Fetch enrolled courses
+        $enrolledCourses = $db->table('enrollments')
+            ->select('courses.id, courses.title, courses.description, enrollments.enrollment_date')
+            ->join('courses', 'enrollments.course_id = courses.id')
+            ->where('enrollments.user_id', $userId)
+            ->get()
+            ->getResultArray();
+
+        foreach ($enrolledCourses as &$en) {
+            if (empty($en['enrollment_date']) || $en['enrollment_date'] == '0000-00-00 00:00:00') {
+                $en['enrollment_date'] = '(No date recorded)';
+            }
+        }
+
+        $data = [
+            'title'           => 'Dashboard',
+            'user_name'       => $userName,
+            'user_role'       => $userRole,
+            'user_id'         => $userId,
+            'courses'         => $courses,
+            'enrolledCourses' => $enrolledCourses,
+        ];
+
+        return view('auth/dashboard', $data);
     }
-
-    $db        = \Config\Database::connect();
-    $userModel = new UserModel();
-
-    $userId   = $session->get('user_id');
-    $userRole = strtolower($session->get('user_role'));
-    $user     = $userModel->find($userId);
-
-    // ✅ Prepare data for the dashboard view
-    $data = [
-        'title'      => 'Dashboard',
-        'user'       => $user,
-        'user_name'  => $user['name'] ?? 'Unknown',
-        'user_email' => $user['email'] ?? 'N/A',
-        'user_role'  => $userRole,
-    ];
-
-    return view('auth/dashboard', $data);
-}
 }

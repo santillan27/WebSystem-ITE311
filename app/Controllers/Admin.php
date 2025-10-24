@@ -40,6 +40,14 @@ class Admin extends BaseController
             ->get()
             ->getResultArray();
 
+        // Fetch all courses for materials management
+        $data['courses'] = $db->table('courses')
+            ->select('courses.id, courses.title, courses.description, users.name as instructor_name')
+            ->join('users', 'users.id = courses.instructor_id')
+            ->orderBy('courses.title', 'ASC')
+            ->get()
+            ->getResultArray();
+
         return view('admin_dashboard', $data);
     }
 }

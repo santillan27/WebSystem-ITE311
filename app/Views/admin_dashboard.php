@@ -69,6 +69,38 @@
         </div>
     <?php endif; ?>
 
+    <!-- 📚 COURSE MATERIALS MANAGEMENT -->
+    <div class="section">
+        <h2>📚 Course Materials Management</h2>
+        <?php if (!empty($courses)): ?>
+            <table>
+                <thead><tr><th>Course Title</th><th>Instructor</th><th>Actions</th></tr></thead>
+                <tbody>
+                <?php foreach ($courses as $course): ?>
+                    <tr>
+                        <td><?= esc($course['title']) ?></td>
+                        <td><?= esc($course['instructor_name']) ?></td>
+                        <td>
+                            <a href="<?= base_url('/admin/course/' . $course['id'] . '/upload') ?>" 
+                               style="background: #007bff; color: white; padding: 6px 12px; 
+                                      border-radius: 5px; text-decoration: none; display: inline-block; margin-right: 5px;">
+                                📤 Upload Material
+                            </a>
+                            <a href="<?= base_url('/materials/course/' . $course['id']) ?>" 
+                               style="background: #28a745; color: white; padding: 6px 12px; 
+                                      border-radius: 5px; text-decoration: none; display: inline-block;">
+                                📁 View Materials
+                            </a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <p>No courses found.</p>
+        <?php endif; ?>
+    </div>
+
     <!-- 🧑‍💼 ADMIN DASHBOARD - ALL ENROLLMENTS -->
     <div class="section">
         <h2>🧑‍💼 Admin Dashboard - All Enrollments</h2>

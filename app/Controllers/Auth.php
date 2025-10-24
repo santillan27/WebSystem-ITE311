@@ -3,11 +3,12 @@
 namespace App\Controllers;
 
 use App\Models\UserModel;
+use App\Models\MaterialModel;
 use CodeIgniter\Controller;
 
 class Auth extends BaseController
 {
-    protected $helpers = ['form', 'url'];
+    protected $helpers = ['form', 'url', 'download'];
 
     // ✅ LOGIN
     public function login()
@@ -61,7 +62,7 @@ class Auth extends BaseController
                 return redirect()->to('/teacher/dashboard')->with('success', 'You have successfully logged in.');
             } else {
                 // Student
-                return redirect()->to('/announcements')->with('success', 'You have successfully logged in.');
+                return redirect()->to('/dashboard')->with('success', 'You have successfully logged in.');
             }
         }
     }
@@ -147,13 +148,21 @@ class Auth extends BaseController
             }
         }
 
+        // ✅ Fetch materials for student's enrolled courses
+        $studentMaterials = [];
+        if ($userRole === 'student') {
+            $materialModel = new MaterialModel();
+            $studentMaterials = $materialModel->getMaterialsByEnrolledCourses($userId);
+        }
+
         $data = [
-            'title'           => 'Dashboard',
-            'user_name'       => $userName,
-            'user_role'       => $userRole,
-            'user_id'         => $userId,
-            'courses'         => $courses,
-            'enrolledCourses' => $enrolledCourses,
+            'title'            => 'Dashboard',
+            'user_name'        => $userName,
+            'user_role'        => $userRole,
+            'user_id'          => $userId,
+            'courses'          => $courses,
+            'enrolledCourses'  => $enrolledCourses,
+            'studentMaterials' => $studentMaterials,
         ];
 
         return view('auth/dashboard', $data);

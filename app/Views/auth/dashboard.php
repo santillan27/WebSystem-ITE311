@@ -117,19 +117,53 @@
             <h2>🎓 My Enrolled Courses</h2>
             <?php if (!empty($enrolledCourses)): ?>
                 <table>
-                    <thead><tr><th>Title</th><th>Description</th><th>Enrollment Date</th></tr></thead>
+                    <thead><tr><th>Title</th><th>Description</th><th>Enrollment Date</th><th>Actions</th></tr></thead>
                     <tbody>
                     <?php foreach ($enrolledCourses as $en): ?>
                         <tr>
                             <td><?= esc($en['title']) ?></td>
                             <td><?= esc($en['description']) ?></td>
                             <td><?= esc($en['enrollment_date']) ?></td>
+                            <td>
+                                <a href="<?= base_url('materials/course/' . $en['id']) ?>" 
+                                   style="background: #007bff; color: white; padding: 6px 12px; 
+                                          border-radius: 5px; text-decoration: none; display: inline-block;">
+                                    📚 View Materials
+                                </a>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
                 </table>
             <?php else: ?>
                 <p>You are not enrolled in any courses yet.</p>
+            <?php endif; ?>
+        </div>
+
+        <div class="section">
+            <h2>📁 My Course Materials</h2>
+            <?php if (!empty($studentMaterials)): ?>
+                <table>
+                    <thead><tr><th>Course</th><th>File Name</th><th>Upload Date</th><th>Action</th></tr></thead>
+                    <tbody>
+                    <?php foreach ($studentMaterials as $material): ?>
+                        <tr>
+                            <td><?= esc($material['course_title']) ?></td>
+                            <td><?= esc($material['file_name']) ?></td>
+                            <td><?= date('M d, Y', strtotime($material['created_at'])) ?></td>
+                            <td>
+                                <a href="<?= base_url('materials/download/' . $material['id']) ?>" 
+                                   style="background: #28a745; color: white; padding: 6px 12px; 
+                                          border-radius: 5px; text-decoration: none; display: inline-block;">
+                                    ⬇️ Download
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <p>No materials available for your enrolled courses yet.</p>
             <?php endif; ?>
         </div>
     <?php endif; ?>

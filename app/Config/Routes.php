@@ -28,6 +28,8 @@ $routes->get('logout', 'Auth::logout');
 // ===============================
 $routes->group('admin', ['filter' => 'roleauth:admin'], function($routes) {
     $routes->get('dashboard', 'Admin::dashboard');
+    $routes->get('course/(:num)/upload', 'Materials::upload/$1');
+    $routes->post('course/(:num)/upload', 'Materials::upload/$1');
 });
 
 // ===============================
@@ -45,19 +47,16 @@ $routes->group('student', ['filter' => 'roleauth:student'], function($routes) {
 });
 
 // ===============================
-//   Announcements DISABLED - Redirect to Dashboard
+//   Announcements REMOVED - No longer available
 // ===============================
-$routes->get('announcements', 'Auth::dashboard');
+// All announcement routes have been disabled
 
 // ===============================
-//   Announcement Management DISABLED (No longer needed)
+//   Materials Routes
 // ===============================
-// $routes->get('announcement', 'Announcement::index');
-// $routes->get('announcement/create', 'Announcement::create');
-// $routes->post('announcement/store', 'Announcement::store');
-// $routes->get('announcement/edit/(:num)', 'Announcement::edit/$1');
-// $routes->post('announcement/update/(:num)', 'Announcement::update/$1');
-// $routes->get('announcement/delete/(:num)', 'Announcement::delete/$1');
+$routes->get('materials/download/(:num)', 'Materials::download/$1');
+$routes->get('materials/delete/(:num)', 'Materials::delete/$1');
+$routes->get('materials/course/(:num)', 'Materials::viewCourse/$1');
 
 // ===============================
 //   Other Routes

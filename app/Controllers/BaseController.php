@@ -35,7 +35,12 @@ abstract class BaseController extends Controller
      *
      * @var list<string>
      */
-    protected $helpers = [];
+    protected $helpers = ['url', 'form', 'session'];
+    
+    /**
+     * @var \App\Models\NotificationModel
+     */
+    protected $notificationModel;
 
     /**
      * Be sure to declare properties for any property fetch you initialized.
@@ -54,5 +59,33 @@ abstract class BaseController extends Controller
         // Preload any models, libraries, etc, here.
 
         // E.g.: $this->session = service('session');
+        
+        // Load the notification model
+        $this->notificationModel = new \App\Models\NotificationModel();
+        
+        // Make notifications available to all views if user is logged in
+        if (session('isLoggedIn')) {
+            $userId = session('user_id');
+            $unreadCount = $this->notificationModel->getUnreadCount($userId);
+            $notifications = $this->notificationModel->getNotificationsForUser($userId, 5);
+            
+            // Share with all views
+            $data = [
+                'unreadNotificationsCount' => $unreadCount,
+                'notifications' => $notifications
+            ];
+            
+            // Add to the view data
+            $this->setViewData($data);
+        }
+    }
+    
+    /**
+     * Set view data that should be available to all views
+     */
+    protected function setViewData($data = [])
+    {
+        $view = \Config\Services::renderer();
+        $view->setData($data);
     }
 }

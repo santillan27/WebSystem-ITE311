@@ -47,6 +47,16 @@ $routes->group('student', ['filter' => 'roleauth:student'], function($routes) {
 });
 
 // ===============================
+//   Notification Routes (Protected)
+// ===============================
+$routes->post('notifications/delete/(:num)', 'Course::deleteNotification/$1');
+$routes->get('notifications', 'Notifications::get');
+$routes->post('notifications/mark_read/(:num)', 'Notifications::mark_as_read/$1');
+$routes->post('notifications/mark_all_read', 'Notifications::mark_all_read');
+$routes->get('notifications/unread_count', 'Notifications::get_unread_count');
+$routes->get('test-notification', 'Notifications::create_test_notification');
+
+// ===============================
 //   Announcements REMOVED - No longer available
 // ===============================
 // All announcement routes have been disabled

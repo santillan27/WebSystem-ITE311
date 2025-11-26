@@ -48,10 +48,65 @@ class Course extends BaseController
             'enrollment_date' => date('Y-m-d H:i:s')
         ];
 
-        if ($enrollmentModel->insert($data)) {
+        try {
+            // Start transaction
+            $db->transStart();
+
+            // Insert enrollment
+            $enrollmentId = $enrollmentModel->insert($data);
+            
+            if (!$enrollmentId) {
+                throw new \RuntimeException('Failed to create enrollment');
+            }
+
+            // Get course details
+            $course = $db->table('courses')
+                        ->where('id', $course_id)
+                        ->get()
+                        ->getRowArray();
+
+            if ($course) {
+                // Get the notification model
+                $notificationModel = new \App\Models\NotificationModel();
+                
+                // Create notification for the student
+                $message = 'You have successfully enrolled in "' . $course['title'] . '"';
+                $notificationModel->createNotification($user_id, $message, 'enrollment', ['course_id' => $course_id]);
+                
+                // If this is a teacher's course, also notify the teacher
+                if (!empty($course['instructor_id'])) {
+                    $teacherMessage = 'New student enrolled in your course: "' . $course['title'] . '"';
+                    $notificationModel->createNotification(
+                        $course['instructor_id'], 
+                        $teacherMessage, 
+                        'new_student', 
+                        ['course_id' => $course_id, 'student_id' => $user_id]
+                    );
+                }
+            }
+
+            // Commit transaction
+            $db->transComplete();
+
+            if ($db->transStatus() === FALSE) {
+                throw new \RuntimeException('Transaction failed');
+            }
+            
             return $this->response->setJSON([
                 'status' => 'success',
-                'message' => 'Enrollment successful!'
+                'message' => 'Enrollment successful!',
+                'redirect' => base_url('dashboard')
+            ]);
+            
+        } catch (\Exception $e) {
+            // Rollback transaction on error
+            $db->transRollback();
+            
+            log_message('error', 'Enrollment error: ' . $e->getMessage());
+            
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'An error occurred during enrollment. Please try again.'
             ]);
         }
 
@@ -62,6 +117,61 @@ class Course extends BaseController
     }
 
     // ✅ DASHBOARD for all roles
+    /**
+     * Delete a notification
+     */
+    public function deleteNotification($id = null)
+    {
+        if (!$this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Invalid request method.'
+            ]);
+        }
+
+        if (empty($id)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'No notification ID provided.'
+            ]);
+        }
+
+        $db = db_connect();
+        $session = session();
+        $userId = $session->get('user_id');
+
+        // Verify the notification belongs to the current user
+        $notification = $db->table('notifications')
+                         ->where('id', $id)
+                         ->where('user_id', $userId)
+                         ->get()
+                         ->getRowArray();
+
+        if (!$notification) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Notification not found or access denied.'
+            ]);
+        }
+
+        // Delete the notification
+        $db->table('notifications')->delete(['id' => $id]);
+
+        // Get updated unread count
+        $unreadCount = $db->table('notifications')
+                         ->where('user_id', $userId)
+                         ->where('is_read', 0)
+                         ->countAllResults();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'unreadCount' => $unreadCount
+        ]);
+    }
+
+    /**
+     * Dashboard for all roles
+     */
     public function dashboard()
     {
         $session = session();
@@ -75,10 +185,29 @@ class Course extends BaseController
         $user_role = $session->get('role');
         $user_name = $session->get('user_name');
 
+        // Get user's notifications
+        $notifications = $db->table('notifications')
+                          ->where('user_id', $user_id)
+                          ->orderBy('created_at', 'DESC')
+                          ->limit(10)
+                          ->get()
+                          ->getResultArray();
+
+        // Count unread notifications
+        $unreadCount = $db->table('notifications')
+                         ->where('user_id', $user_id)
+                         ->where('is_read', 0)
+                         ->countAllResults();
+
+        // Debug: Log the unread count
+        log_message('debug', "Unread count for user {$user_id}: {$unreadCount}");
+        
         $data = [
-            'user_name' => $user_name,
-            'user_role' => $user_role,
-            'title'     => 'Dashboard'
+            'user_name'    => $user_name,
+            'user_role'    => $user_role,
+            'title'        => 'Dashboard',
+            'notifications' => $notifications,
+            'unreadCount'  => $unreadCount
         ];
 
         // 🔹 STUDENT DASHBOARD

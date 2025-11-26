@@ -51,7 +51,7 @@ class Materials extends BaseController
             $validation->setRules([
                 'material_file' => [
                     'label' => 'Material File',
-                    'rules' => 'uploaded[material_file]|max_size[material_file,10240]|ext_in[material_file,pdf,doc,docx,ppt,pptx,xls,xlsx,txt]',
+                    'rules' => 'uploaded[material_file]|max_size[material_file,10240]|ext_in[material_file,png,jpg,jpeg,gif,pdf,doc,docx,ppt,pptx,xls,xlsx,txt]',
                 ],
             ]);
 
@@ -64,17 +64,34 @@ class Materials extends BaseController
             if ($file->isValid() && !$file->hasMoved()) {
                 // Define upload path
                 $uploadPath = WRITEPATH . 'uploads/materials/';
+                
+                // Debug: Log the upload path
+                log_message('debug', 'Upload path: ' . $uploadPath);
 
                 // Create directory if it doesn't exist
                 if (!is_dir($uploadPath)) {
-                    mkdir($uploadPath, 0777, true);
+                    if (!mkdir($uploadPath, 0777, true)) {
+                        log_message('error', 'Failed to create directory: ' . $uploadPath);
+                        return redirect()->back()->with('error', 'Failed to create upload directory. Please check server permissions.');
+                    }
+                    // Set directory permissions
+                    chmod($uploadPath, 0777);
+                }
+                
+                // Check if directory is writable
+                if (!is_writable($uploadPath)) {
+                    log_message('error', 'Upload directory is not writable: ' . $uploadPath);
+                    return redirect()->back()->with('error', 'Upload directory is not writable. Please check server permissions.');
                 }
 
                 // Generate unique filename
                 $newName = $file->getRandomName();
                 
-                // Move the file
-                if ($file->move($uploadPath, $newName)) {
+                // Move the file with error handling
+                try {
+                    if (!$file->move($uploadPath, $newName)) {
+                        throw new \RuntimeException($file->getErrorString() . '(' . $file->getError() . ')');
+                    }
                     // Save to database
                     $materialModel = new MaterialModel();
                     $data = [
@@ -84,19 +101,30 @@ class Materials extends BaseController
                         'created_at' => date('Y-m-d H:i:s'),
                     ];
 
-                    if ($materialModel->insertMaterial($data)) {
-                        return redirect()->to('/admin/dashboard')->with('success', 'Material uploaded successfully!');
-                    } else {
+                    try {
+                        if ($materialModel->insertMaterial($data)) {
+                            log_message('info', 'Material uploaded successfully: ' . $file->getClientName());
+                            return redirect()->to('/admin/dashboard')->with('success', 'Material uploaded successfully!');
+                        } else {
+                            throw new \RuntimeException('Failed to save material to database');
+                        }
+                    } catch (\Exception $e) {
                         // Delete the uploaded file if database insert fails
-                        unlink($uploadPath . $newName);
-                        return redirect()->back()->with('error', 'Failed to save material information.');
+                        if (file_exists($uploadPath . $newName)) {
+                            unlink($uploadPath . $newName);
+                        }
+                        log_message('error', 'Database error: ' . $e->getMessage());
+                        return redirect()->back()->with('error', 'Failed to save material information: ' . $e->getMessage());
                     }
-                } else {
-                    return redirect()->back()->with('error', 'Failed to upload file.');
-                }
-            } else {
-                return redirect()->back()->with('error', 'Invalid file or file has already been moved.');
+            } catch (\Exception $e) {
+                log_message('error', 'File upload error: ' . $e->getMessage());
+                return redirect()->back()->with('error', 'Failed to upload file: ' . $e->getMessage());
             }
+        } else {
+            $error = $file->getErrorString() ?: 'Invalid file or file has already been moved.';
+            log_message('error', 'File validation failed: ' . $error);
+            return redirect()->back()->with('error', $error);
+        }
         }
     }
 

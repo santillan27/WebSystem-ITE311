@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?= csrf_token() ?>">
     <title><?= esc($title ?? 'Dashboard') ?> - ITE311-SANTILLAN</title>
     <style>
         
@@ -56,6 +57,33 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 30px;
         }
     </style>
+<style>
+    #notifications.show {
+        display: block !important;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #ff4d4d;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+    }
+</style>
 </head>
 <body>
 <div class="container">
@@ -77,6 +105,48 @@
             <h3>Statistics</h3>
             <p>You are logged in as <strong><?= esc($user_role) ?></strong>.</p>
         </div>
+        <div class="dashboard-card" style="cursor: pointer;" onclick="toggleNotifications()">
+            <div class="card-icon">🔔</div>
+            <h3>Notifications 
+                <span id="notification-badge" class="notification-badge" style="background: #ff4d4d; color: white; border-radius: 50%; padding: 2px 8px; font-size: 12px; display: <?= isset($unreadCount) && $unreadCount > 0 ? 'inline-block' : 'none' ?>;">
+                    <?= isset($unreadCount) ? $unreadCount : 0 ?>
+                </span>
+            </h3>
+            <p id="notification-text">You have <strong><span id="unread-count"><?= isset($unreadCount) ? $unreadCount : 0 ?></span> unread</strong> notification<?= isset($unreadCount) && $unreadCount !== 1 ? 's' : '' ?></p>
+        </div>
+    </div>
+
+    <!-- 🔔 Notifications Section (Initially Hidden) -->
+    <div id="notifications" class="section" style="display: none;">
+        <h2>🔔 My Notifications</h2>
+        <?php if (!empty($notifications)): ?>
+            <div class="notifications-list">
+                <?php foreach ($notifications as $notification): ?>
+                    <div id="notification-<?= $notification['id'] ?>" class="notification-item <?= $notification['is_read'] == 0 ? 'unread' : '' ?>" 
+                         data-id="<?= $notification['id'] ?>"
+                         style="padding: 15px; margin-bottom: 10px; border-left: 4px solid #667eea; background: #f8f9fa; border-radius: 4px; transition: opacity 0.3s ease;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <p style="margin: 0; font-weight: <?= $notification['is_read'] == 0 ? 'bold' : 'normal' ?>;">
+                                    <?= esc($notification['message']) ?>
+                                </p>
+                                <small style="color: #666;">
+                                    <?= date('M j, Y g:i A', strtotime($notification['created_at'])) ?>
+                                </small>
+                            </div>
+                            <?php if ($notification['is_read'] == 0): ?>
+                                <button onclick="markAsRead(<?= $notification['id'] ?>)" class="mark-as-read" 
+                                        style="background: #667eea; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
+                                    Mark as read
+                                </button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <p>No notifications yet.</p>
+        <?php endif; ?>
     </div>
 
     <!-- 🔹 STUDENT DASHBOARD -->
@@ -225,8 +295,187 @@
     <?php endif; ?>
 </div>
 
-<!-- ✅ AJAX Enroll -->
+<!-- Notification Functions -->
 <script>
+// Base URL for AJAX requests
+const baseUrl = '<?= base_url() ?>';
+
+// Toggle notifications panel
+function toggleNotifications() {
+    const notificationsPanel = document.getElementById('notifications');
+    const isVisible = notificationsPanel.style.display === 'block';
+    notificationsPanel.style.display = isVisible ? 'none' : 'block';
+}
+
+// Update the notification count in the UI
+function updateNotificationCount(count) {
+    const badge = document.getElementById('notification-badge');
+    const counter = document.getElementById('unread-count');
+    const notificationText = document.getElementById('notification-text');
+    
+    if (count > 0) {
+        badge.style.display = 'inline-block';
+        badge.textContent = count;
+        counter.textContent = count;
+        // Update the plural form
+        notificationText.innerHTML = `You have <strong>${count} unread</strong> notification${count !== 1 ? 's' : ''}`;
+    } else {
+        badge.style.display = 'none';
+        counter.textContent = '0';
+        notificationText.textContent = 'You have no unread notifications';
+    }
+}
+
+// Fetch and update the unread count
+function updateUnreadCount() {
+    fetch(`${baseUrl}/notifications/unread_count`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateNotificationCount(data.unreadCount);
+        }
+    })
+    .catch(error => console.error('Error fetching unread count:', error));
+}
+
+// Mark notification as read
+function markAsRead(notificationId) {
+    if (!notificationId) {
+        console.error('No notification ID provided');
+        return;
+    }
+    
+    console.log('Marking notification as read:', notificationId);
+    
+    // Find the notification element
+    const notificationElement = document.getElementById(`notification-${notificationId}`);
+    if (!notificationElement) {
+        console.error('Notification element not found:', `notification-${notificationId}`);
+        return;
+    }
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    console.log('CSRF Token:', csrfToken ? 'Present' : 'Missing');
+    
+    const url = `${baseUrl}/notifications/mark_read/${notificationId}`;
+    console.log('Calling URL:', url);
+    
+    // Make the API call to mark as read
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({})
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.success) {
+            // Update the UI to show the notification as read
+            notificationElement.classList.remove('unread');
+            const button = notificationElement.querySelector('button');
+            if (button) {
+                button.style.display = 'none';
+            }
+            
+            // Update the unread count
+            updateUnreadCount();
+            alert('Notification marked as read!');
+        } else {
+            console.error('Failed to mark as read:', data.message);
+            alert('Failed to mark notification as read: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error marking notification as read:', error);
+        alert('Error: ' + error.message);
+    });
+}
+
+// Mark all notifications as read
+function markAllAsRead() {
+    fetch(`${baseUrl}/notifications/mark_all_read`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update all notifications to appear as read
+            document.querySelectorAll('.notification-item.unread').forEach(item => {
+                item.classList.remove('unread');
+                const button = item.querySelector('button');
+                if (button) button.style.display = 'none';
+            });
+            
+            // Update the unread count
+            updateNotificationCount(0);
+        }
+    })
+    .catch(error => {
+        console.error('Error marking all notifications as read:', error);
+    });
+}
+
+// Update the notification count when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial update
+    updateUnreadCount();
+    
+    // Update every 30 seconds
+    setInterval(updateUnreadCount, 30000);
+    
+    // Add event delegation for mark as read buttons
+    document.addEventListener('click', function(event) {
+        // Handle mark as read button clicks
+        if (event.target.classList.contains('mark-as-read')) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const notificationDiv = event.target.closest('.notification-item');
+            if (notificationDiv) {
+                const notificationId = notificationDiv.getAttribute('data-id');
+                console.log('Button clicked for notification:', notificationId);
+                markAsRead(notificationId);
+            }
+        }
+        
+        // Handle click outside to close notifications
+        const notificationsPanel = document.getElementById('notifications');
+        const notificationBadge = document.querySelector('.dashboard-card[onclick="toggleNotifications()"]');
+        
+        if (notificationsPanel && notificationBadge && 
+            !notificationsPanel.contains(event.target) && 
+            !notificationBadge.contains(event.target) &&
+            !event.target.classList.contains('mark-as-read')) {
+            notificationsPanel.style.display = 'none';
+        }
+    });
+});
+
+// AJAX Enroll
 document.querySelectorAll('.enroll-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
         const id = btn.dataset.id;
@@ -236,15 +485,36 @@ document.querySelectorAll('.enroll-btn').forEach(btn => {
         
         fetch('<?= base_url('course/enroll') ?>', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'course_id=' + id
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: 'course_id=' + id,
+            credentials: 'same-origin'
         })
-        .then(r => r.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
             alert(data.message);
-            if (data.status === 'success') location.reload();
+            if (data.status === 'success') {
+                // Update notification count after successful enrollment
+                setTimeout(() => {
+                    updateUnreadCount();
+                }, 100);
+                setTimeout(() => {
+                    location.reload();
+                }, 800);
+            }
         })
-        .catch(() => alert('Error occurred.'));
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
     });
 });
 </script>

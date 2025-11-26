@@ -128,6 +128,20 @@ class Auth extends BaseController
         $userRole = strtolower($session->get('role'));
         $userName = $session->get('user_name');
 
+        // ✅ Fetch notifications
+        $notifications = $db->table('notifications')
+                          ->where('user_id', $userId)
+                          ->orderBy('created_at', 'DESC')
+                          ->limit(10)
+                          ->get()
+                          ->getResultArray();
+
+        // ✅ Count unread notifications
+        $unreadCount = $db->table('notifications')
+                         ->where('user_id', $userId)
+                         ->where('is_read', 0)
+                         ->countAllResults();
+
         // ✅ Fetch all courses
         $courses = $db->table('courses')
                       ->select('id, title, description')
@@ -155,14 +169,67 @@ class Auth extends BaseController
             $studentMaterials = $materialModel->getMaterialsByEnrolledCourses($userId);
         }
 
+        // ✅ Fetch teacher courses if teacher
+        $teacherCourses = [];
+        if ($userRole === 'teacher') {
+            $teacherCourses = $db->table('courses')
+                ->where('instructor_id', $userId)
+                ->get()
+                ->getResultArray();
+
+            $teacherCoursesData = [];
+            foreach ($teacherCourses as $course) {
+                $students = $db->table('enrollments')
+                    ->select('users.name, enrollments.enrollment_date')
+                    ->join('users', 'users.id = enrollments.user_id')
+                    ->where('enrollments.course_id', $course['id'])
+                    ->get()
+                    ->getResultArray();
+
+                $course['students'] = $students;
+                $teacherCoursesData[] = $course;
+            }
+            $teacherCourses = $teacherCoursesData;
+        }
+
+        // ✅ Fetch admin data if admin
+        $allEnrollments = [];
+        $announcements = [];
+        if ($userRole === 'admin') {
+            $allEnrollments = $db->table('enrollments')
+                ->select('courses.title AS course_title, 
+                          instructors.name AS instructor_name, 
+                          students.name AS student_name, 
+                          enrollments.enrollment_date')
+                ->join('courses', 'courses.id = enrollments.course_id')
+                ->join('users AS instructors', 'instructors.id = courses.instructor_id')
+                ->join('users AS students', 'students.id = enrollments.user_id')
+                ->orderBy('enrollments.enrollment_date', 'DESC')
+                ->get()
+                ->getResultArray();
+        }
+
+        // ✅ Fetch announcements for all roles
+        $announcements = $db->table('announcements')
+            ->select('announcements.*, users.name as posted_by')
+            ->join('users', 'users.id = announcements.user_id')
+            ->orderBy('announcements.created_at', 'DESC')
+            ->get()
+            ->getResultArray();
+
         $data = [
             'title'            => 'Dashboard',
             'user_name'        => $userName,
             'user_role'        => $userRole,
             'user_id'          => $userId,
+            'notifications'    => $notifications,
+            'unreadCount'      => $unreadCount,
             'courses'          => $courses,
             'enrolledCourses'  => $enrolledCourses,
             'studentMaterials' => $studentMaterials,
+            'teacherCourses'   => $teacherCourses,
+            'allEnrollments'   => $allEnrollments,
+            'announcements'    => $announcements,
         ];
 
         return view('auth/dashboard', $data);

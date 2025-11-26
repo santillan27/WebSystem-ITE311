@@ -17,16 +17,28 @@ class RoleAuth implements FilterInterface
             return redirect()->to('/login')->with('error', 'Please login first.');
         }
 
-        // Get current role and page path
+        // Get current role
         $role = $session->get('role'); // admin, teacher, or student
-        $uri  = service('uri')->getPath(); // e.g. "teacher/dashboard"
 
-        // Determine allowed role from route group argument
-        $allowedRole = $arguments[0] ?? null;
+        // Determine allowed roles from route argument
+        $allowedRoles = $arguments[0] ?? null;
 
-        // Block access if role doesn't match
-        if ($allowedRole && $role !== $allowedRole) {
-            return redirect()->to('/announcements')->with('error', 'Access Denied: Insufficient Permissions.');
+        // If no roles specified, allow access
+        if (!$allowedRoles) {
+            return $request;
+        }
+
+        // Split comma-separated roles if needed
+        if (is_string($allowedRoles)) {
+            $allowedRoles = array_map('trim', explode(',', $allowedRoles));
+        } elseif (!is_array($allowedRoles)) {
+            $allowedRoles = [$allowedRoles];
+        }
+
+        // Check if user's role is in the allowed roles
+        if (!in_array($role, $allowedRoles)) {
+            log_message('warning', "Access denied for role '{$role}' to route. Allowed roles: " . implode(', ', $allowedRoles));
+            return redirect()->to('/dashboard')->with('error', 'Access Denied: Insufficient Permissions.');
         }
 
         return $request; // proceed if authorized

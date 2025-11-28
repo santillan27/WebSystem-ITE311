@@ -170,6 +170,98 @@ class Course extends BaseController
     }
 
     /**
+     * Search courses - Server-side search functionality
+     * Accepts GET/POST requests with search term parameter
+     * Returns JSON for AJAX requests or renders view for regular requests
+     */
+    public function search()
+    {
+        $session = session();
+        $db = db_connect();
+
+        if (!$session->get('isLoggedIn')) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'You must be logged in to search courses.'
+                ]);
+            }
+            return redirect()->to('/auth/login');
+        }
+
+        $searchTerm = $this->request->getVar('search') ?? '';
+        $searchTerm = trim($searchTerm);
+
+        // Build the query
+        $query = $db->table('courses');
+
+        // Apply search filter if search term is provided
+        if (!empty($searchTerm)) {
+            $query->like('title', $searchTerm)
+                  ->orLike('description', $searchTerm);
+        }
+
+        // Execute the query
+        $results = $query->get()->getResultArray();
+
+        // Log the search activity
+        log_message('info', "User {$session->get('user_id')} searched for: '{$searchTerm}' - Found " . count($results) . " results");
+
+        // If AJAX request, return JSON
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'success' => true,
+                'searchTerm' => $searchTerm,
+                'results' => $results,
+                'count' => count($results)
+            ]);
+        }
+
+        // Otherwise, render the view with results
+        $user_id   = $session->get('user_id');
+        $user_role = $session->get('role');
+        $user_name = $session->get('user_name');
+
+        // Get enrolled courses for comparison
+        $enrolledCourses = [];
+        if ($user_role === 'student') {
+            $enrolledCourses = $db->table('enrollments')
+                ->select('course_id')
+                ->where('user_id', $user_id)
+                ->get()
+                ->getResultArray();
+            $enrolledCourses = array_column($enrolledCourses, 'course_id');
+        }
+
+        // Get user's notifications
+        $notifications = $db->table('notifications')
+                          ->where('user_id', $user_id)
+                          ->orderBy('created_at', 'DESC')
+                          ->limit(10)
+                          ->get()
+                          ->getResultArray();
+
+        // Count unread notifications
+        $unreadCount = $db->table('notifications')
+                         ->where('user_id', $user_id)
+                         ->where('is_read', 0)
+                         ->countAllResults();
+
+        $data = [
+            'user_name'        => $user_name,
+            'user_role'        => $user_role,
+            'title'            => 'Search Results',
+            'searchTerm'       => $searchTerm,
+            'courses'          => $results,
+            'enrolledCourses'  => $enrolledCourses,
+            'notifications'    => $notifications,
+            'unreadCount'      => $unreadCount
+        ];
+
+        return view('courses/search_results', $data);
+    }
+
+    /**
      * Dashboard for all roles
      */
     public function dashboard()

@@ -69,6 +69,11 @@ $routes->get('materials/delete/(:num)', 'Materials::delete/$1');
 $routes->get('materials/course/(:num)', 'Materials::viewCourse/$1');
 
 // ===============================
+//   Search Routes
+// ===============================
+$routes->match(['get', 'post'], 'course/search', 'Course::search');
+
+// ===============================
 //   Other Routes
 // ===============================
 $routes->get('dashboard', 'Auth::dashboard');
